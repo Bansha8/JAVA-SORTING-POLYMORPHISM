@@ -1,0 +1,21 @@
+public class SortTest {
+    public static void main(String[] args) {
+        // Масив, який ми тестуємо
+        int[] array = {64, 25, 12, 22, 11};
+        
+        System.out.println("--- Тестування системи сортування (Java Polymorphism) ---");
+        System.out.print("Вхідний масив: ");
+        for (int v : array) System.out.print(v + " ");
+        System.out.println();
+
+        // Виклик через поліморфізм
+        Sorter sorter = new BubbleSort(); 
+        sorter.sort(array);
+
+        System.out.print("Відсортований масив: ");
+        for (int value : array) {
+            System.out.print(value + " ");
+        }
+        System.out.println("\n-------------------------------------------------------");
+    }
+}
