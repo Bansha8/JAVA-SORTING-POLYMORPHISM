@@ -1,14 +1,13 @@
 import java.util.Arrays;
 import java.util.Random;
-
-// --- 1. АБСТРАКЦІЯ (Стратегія) ---
+// --- 1. АБСТРАКЦІЯ ---
 interface SortStrategy {
     void sort(int[] array);
 }
 
-// --- 2. РЕАЛІЗАЦІЇ АЛГОРИТМІВ ---
+// --- 2. РЕАЛІЗАЦІЇ АЛГОРИТМІВ (4 МЕТОДИ) ---
 
-// Бульбашкове сортування
+// 2.1. Сортування бульбашкою (Bubble Sort)
 class BubbleSort implements SortStrategy {
     public void sort(int[] array) {
         int n = array.length;
@@ -24,7 +23,23 @@ class BubbleSort implements SortStrategy {
     }
 }
 
-// Сортування вибором
+// 2.2. Сортування вставками (Insertion Sort)
+class InsertionSort implements SortStrategy {
+    public void sort(int[] array) {
+        int n = array.length;
+        for (int i = 1; i < n; i++) {
+            int key = array[i];
+            int j = i - 1;
+            while (j >= 0 && array[j] > key) {
+                array[j + 1] = array[j];
+                j = j - 1;
+            }
+            array[j + 1] = key;
+        }
+    }
+}
+
+// 2.3. Сортування вибором (Selection Sort)
 class SelectionSort implements SortStrategy {
     public void sort(int[] array) {
         int n = array.length;
@@ -40,12 +55,11 @@ class SelectionSort implements SortStrategy {
     }
 }
 
-// Швидке сортування (Quick Sort)
+// 2.4. Швидке сортування (Quick Sort)
 class QuickSort implements SortStrategy {
     public void sort(int[] array) {
         quickSort(array, 0, array.length - 1);
     }
-
     private void quickSort(int[] arr, int low, int high) {
         if (low < high) {
             int pi = partition(arr, low, high);
@@ -53,7 +67,6 @@ class QuickSort implements SortStrategy {
             quickSort(arr, pi + 1, high);
         }
     }
-
     private int partition(int[] arr, int low, int high) {
         int pivot = arr[high];
         int i = (low - 1);
@@ -72,67 +85,65 @@ class QuickSort implements SortStrategy {
     }
 }
 
-// --- 3. КОНТЕКСТ (Клас, що використовує поліморфізм) ---
+// --- 3. КОНТЕКСТ (Використання поліморфізму) ---
 class Sorter {
     private SortStrategy strategy;
-
-    public Sorter(SortStrategy strategy) {
-        this.strategy = strategy;
-    }
-
-    public void setStrategy(SortStrategy strategy) {
-        this.strategy = strategy;
-    }
-
-    public void performSort(int[] array) {
-        strategy.sort(array);
-    }
+    public Sorter(SortStrategy strategy) { this.strategy = strategy; }
+    public void setStrategy(SortStrategy strategy) { this.strategy = strategy; }
+    public void performSort(int[] array) { strategy.sort(array); }
 }
 
-// --- 4. ГОЛОВНИЙ КЛАС ТА БЕНЧМАРК ---
-public class SortBenchmark {
+// --- 4. ГОЛОВНИЙ МОДУЛЬ (Бенчмарк та тестування) ---
+public class SortMaster {
     public static void main(String[] args) {
-        // Базова перевірка логіки
-        int[] data = {5, 2, 9, 1, 5, 6};
-        System.out.println("Вхідний масив: " + Arrays.toString(data));
+        System.out.println("=== Java Polymorphic Sorting Suite ===");
+        int[] data = {34, 12, 5, 78, 1, 45, 23};
+        System.out.println("Тестовий масив: " + Arrays.toString(data));
 
         Sorter sorter = new Sorter(new BubbleSort());
+
+        // Демонстрація роботи кожного методу
+        SortStrategy[] allStrategies = {
+            new BubbleSort(), 
+            new InsertionSort(), 
+            new SelectionSort(), 
+            new QuickSort()
+        };
         
-        int[] bubbleData = data.clone();
-        sorter.performSort(bubbleData);
-        System.out.println("Bubble Sort: " + Arrays.toString(bubbleData));
+        String[] names = {"Bubble", "Insertion", "Selection", "Quick"};
 
-        sorter.setStrategy(new SelectionSort());
-        int[] selectData = data.clone();
-        sorter.performSort(selectData);
-        System.out.println("Selection Sort: " + Arrays.toString(selectData));
+        for (int i = 0; i < allStrategies.length; i++) {
+            int[] testCopy = data.clone();
+            sorter.setStrategy(allStrategies[i]);
+            sorter.performSort(testCopy);
+            System.out.println(names[i] + " Sort Result: " + Arrays.toString(testCopy));
+        }
 
-        sorter.setStrategy(new QuickSort());
-        int[] quickData = data.clone();
-        sorter.performSort(quickData);
-        System.out.println("Quick Sort: " + Arrays.toString(quickData));
-
-        // Запуск експериментального дослідження (Бенчмарк)
+        // Запуск порівняльного аналізу
         runBenchmark();
     }
 
     public static void runBenchmark() {
-        int[] testSizes = {100, 1000, 5000, 10000};
-        Random random = new Random();
+        int[] sizes = {100, 1000, 5000};
+        Random rand = new Random();
+        
+        for (int size : sizes) {
+            System.out.println("\n--- Аналіз продуктивності (N = " + size + ") ---");
+            int[] base = new int[size];
+            for (int i = 0; i < size; i++) base[i] = rand.nextInt(10000);
 
-        for (int size : testSizes) {
-            System.out.println("\n--- Тестування масиву з " + size + " елементів ---");
-
-            int[] baseArray = new int[size];
-            for (int i = 0; i < size; i++) {
-                baseArray[i] = random.nextInt(10000);
-            }
-
-            SortStrategy[] strategies = {new BubbleSort(), new SelectionSort(), new QuickSort()};
-            String[] names = {"Bubble Sort", "Selection Sort", "Quick Sort"};
-
-            Sorter sorter = new Sorter(strategies[0]);
+            SortStrategy[] strategies = {new BubbleSort(), new InsertionSort(), new SelectionSort(), new QuickSort()};
+            String[] names = {"Bubble", "Insertion", "Selection", "Quick"};
+            Sorter s = new Sorter(strategies[0]);
 
             for (int i = 0; i < strategies.length; i++) {
-                sorter.setStrategy(strategies[i]);
-                int[] testArray = baseArray.clone();
+                s.setStrategy(strategies[i]);
+                int[] copy = base.clone();
+                long start = System.nanoTime();
+                s.performSort(copy);
+                long end = System.nanoTime();
+                System.out.printf("%s: %.5f сек\n", names[i], (end - start) / 1_000_000_000.0);
+            }
+        }
+    }
+}
